@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{listings}
+\usepackage{color}
+
+\title{LaTeX Learning}
+\author{Balraj Singh Gidda}
+\date{27th September, 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Here we go!!}
+
+\subsection{Sample code with no extra stuff}
+First document. This is a sample \LaTeX\ document, with no extra parameters or packages included!!!!
+
+\subsection{Maths}
+This is how you do it:
+
+$E=mc^2$
+
+$\sum F = ma$
+
+A rectangle has side length of $(x+1)$ and $(x+3)$
+
+A square has side $a$ instead
+
+When a new line equation is to be added, it is done like this: $$\sum F = ma$$
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=c++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\subsection{Displaying Code}
+
+When adding an code block, it can be added like this:
+
+\begin{lstlisting}
+  #include<iostream>
+  using namespace std;
+
+  int main(){
+    cout << "Test of the lstlistings!!!!" << endl;
+    return 0;
+  }
+\end{lstlisting}
+
+\end{document}
