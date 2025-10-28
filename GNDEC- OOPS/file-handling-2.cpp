@@ -4,16 +4,14 @@
 using namespace std;
 
 int main(){
-  ofstream outfile("overloading.cpp");
-  if (outfile.is_open()) {
-    outfile << "This is a cpp file." << endl;
+  ifstream inputfile("overloading.txt");
 
-    outfile.close();
+  string line;
 
-    cout << "Cpp file saved!" << endl;
+  while (getline (inputfile,line)) {
+    cout << line << endl;
+    inputfile.close();
   }
-  else {
-    cout << "error" << endl;
-  }
+
   return 0;
 }
