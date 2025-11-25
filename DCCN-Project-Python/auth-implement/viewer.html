@@ -32,18 +32,18 @@
   .topnav a{ text-decoration:none; color:var(--pine); font-weight:600; padding:6px 4px; }
   .topnav a.active{ color:var(--rose); }
 
-  .app { display:grid; grid-template-columns: 1fr 340px; gap:12px; height: calc(100vh - 72px); padding: 86px 14px 14px 14px; box-sizing:border-box; }
+  .app { display:grid; grid-template-columns: 1fr 360px; gap:12px; height: calc(100vh - 72px); padding: 86px 14px 14px 14px; box-sizing:border-box; }
   .canvas { background:var(--surface); border-radius:12px; padding:12px; overflow:hidden; box-shadow:0 6px 20px rgba(18,16,20,0.04); display:flex; flex-direction:column; }
   header h1 { margin:0; font-size:18px; color:var(--pine); }
   header .sub { color:var(--subtle); font-size:12px; }
   #viz { flex:1 1 auto; width:100%; height:100%; display:block; }
 
   .panel { background:var(--surface); border-radius:12px; padding:12px; box-shadow:0 6px 20px rgba(18,16,20,0.04); display:flex; flex-direction:column; gap:8px; max-height: calc(100vh - 120px); overflow:hidden; }
-  #log { overflow:auto; max-height: 420px; padding-right:6px; font-family: monospace; font-size:13px; color:var(--text); }
+  #log { overflow:auto; max-height: 220px; padding-right:6px; font-family: monospace; font-size:13px; color:var(--text); }
 
   .stat { display:flex; justify-content:space-between; align-items:center; padding:8px; border-radius:8px; background:var(--overlay); font-size:13px; color:var(--text); }
-  .legend .item { color:var(--subtle); font-size:13px; }
-  .dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
+  .legend .item { color:var(--subtle); font-size:13px; margin-top:6px; }
+  .dot { width:12px; height:12px; border-radius:50%; display:inline-block; margin-right:8px; vertical-align:middle; }
   .state-connected { fill: var(--foam); }
   .state-transferring { fill: var(--gold); }
   .state-idle { fill: var(--muted); }
@@ -54,14 +54,14 @@
   button { background:var(--pine); color:var(--base); border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:700; }
   button:hover { background:var(--foam); }
 
-  /* login modal */
-  .modal-backdrop { position:fixed; inset:0; background:rgba(11,9,10,0.35); display:flex; align-items:center; justify-content:center; z-index:10000; }
-  .modal { width:360px; background:var(--surface); padding:20px; border-radius:12px; box-shadow:0 20px 60px rgba(18,16,20,0.3); border:1px solid rgba(43,36,48,0.06); }
-  .modal h3 { margin:0 0 8px 0; color:var(--pine); }
-  .modal input[type=text], .modal input[type=password] { width:100%; padding:10px; margin:6px 0; border-radius:8px; border:1px solid rgba(43,36,48,0.06); background:var(--overlay); }
-  .modal .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+  /* devices list */
+  .devices { overflow:auto; max-height:240px; padding-right:6px; }
+  .device-row { display:flex; justify-content:space-between; align-items:center; padding:8px; border-radius:8px; margin-bottom:6px; background:rgba(0,0,0,0.01); }
+  .device-meta { display:flex; gap:8px; align-items:center; }
+  .device-name { font-weight:700; color:var(--pine); }
+  .device-id { font-size:12px; color:var(--subtle); }
 
-  @media (max-width:900px){ .app{ grid-template-columns: 1fr; padding:100px 12px 12px 12px; } .panel{ max-height: calc(50vh); overflow:auto; } }
+  @media (max-width:1000px){ .app{ grid-template-columns: 1fr; padding:100px 12px 12px 12px; } .panel{ max-height: calc(50vh); overflow:auto; } }
 </style>
 </head>
 <body>
@@ -71,6 +71,7 @@
     <a href="/" class="active">Visualization</a>
     <a href="/upload">Upload</a>
     <a href="/files">Files</a>
+    <a href="/logout" id="logoutLink">Logout</a>
   </div>
 </nav>
 
@@ -78,7 +79,7 @@
   <div class="canvas">
     <header style="display:flex; align-items:flex-start; gap:12px;">
       <div style="flex:1"><h1>Network Topology — Live</h1><div class="sub">Nodes = devices · Events from server → realtime</div></div>
-      <div style="text-align:right"><div style="font-size:13px; color:var(--muted)">Status</div><div id="conn_status" style="font-weight:700; color:var(--pine)">connected</div></div>
+      <div style="text-align:right"><div style="font-size:13px; color:var(--muted)">Status</div><div id="conn_status" style="font-weight:700; color:var(--pine)">connecting</div></div>
     </header>
 
     <svg id="viz" preserveAspectRatio="xMidYMid meet"></svg>
@@ -92,37 +93,24 @@
       <div style="text-align:right;"><div style="font-size:13px; color:var(--muted)">Events</div><div id="event_count" style="font-weight:700; font-size:16px">0</div></div>
     </div>
 
-    <div class="legend">
-      <div class="item"><span class="dot" style="background:var(--foam)"></span> Connected</div>
-      <div class="item"><span class="dot" style="background:var(--gold)"></span> Transferring</div>
-      <div class="item"><span class="dot" style="background:var(--muted)"></span> Idle</div>
-      <div class="item"><span class="dot" style="background:var(--love)"></span> Error</div>
-    </div>
-
     <div style="display:flex; gap:8px;">
       <button id="center">Center</button>
       <button id="clear">Clear nodes</button>
       <button id="pause">Pause events</button>
     </div>
 
+    <h3 style="margin:8px 0 4px 0; color:var(--subtle); font-size:13px">Devices (your account)</h3>
+    <div class="devices" id="devicesList">
+      <!-- devices will be inserted here -->
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button id="refreshDevices">Refresh</button>
+      <button id="registerDevice">Register this device</button>
+    </div>
+
     <h3 style="margin:8px 0 4px 0; color:var(--subtle); font-size:13px">Event Log</h3>
     <div id="log" role="log" aria-live="polite"></div>
-  </div>
-</div>
-
-<!-- login/register modal -->
-<div id="loginModal" class="modal-backdrop" style="display:none;">
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Login">
-    <h3>Sign in or continue as guest</h3>
-    <input id="deviceName" type="text" placeholder="Device name (e.g. Balraj-phone)" />
-    <input id="username" type="text" placeholder="Username (optional)" />
-    <input id="password" type="password" placeholder="Password (if logging in)" />
-    <div style="font-size:12px; color:var(--subtle); margin-top:6px;">If you register/login, this device will be associated with your account.</div>
-    <div class="actions">
-      <button id="guestBtn">Continue as guest</button>
-      <button id="loginBtn">Login & show</button>
-    </div>
-    <div style="font-size:12px; color:var(--subtle); margin-top:8px;">If you don't have an account, use <code>/register</code> endpoint to create one (via API).</div>
   </div>
 </div>
 
@@ -134,14 +122,44 @@ function generateClientId(){ const r=Math.random().toString(36).slice(2,8); cons
 function getClientId(){ try{ let id=localStorage.getItem('client_id'); if(!id){ id=generateClientId(); localStorage.setItem('client_id', id);} return id;}catch(e){return generateClientId();}}
 const CLIENT_ID = getClientId();
 
-function apiPost(url, body){
-  return fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body), credentials: 'include' })
-    .then(r => r.ok ? r.json().catch(()=>({ok:true})) : r.json().then(j=>Promise.reject(j)).catch(()=>Promise.reject({ok:false})));
+function apiFetch(url, opts){
+  opts = opts || {};
+  opts.credentials = 'include'; // send cookies
+  return fetch(url, opts).then(async r => {
+    const ct = r.headers.get('content-type') || '';
+    if(!r.ok){
+      // try to parse JSON error
+      try { const j = await r.json(); throw j; } catch(e){ throw { ok:false, status:r.status }; }
+    }
+    if(ct.includes('application/json')) return r.json();
+    return r.text();
+  });
 }
 
 function sendLog(eventObj){
   // send to /log_event endpoint (no need for beacon here; we want JSON)
   fetch('/log_event', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(eventObj), keepalive:true }).catch(()=>{});
+}
+
+/* ---------------------------
+   Auth guard (Option A)
+   --------------------------- */
+async function checkAuthOrRedirect(){
+  try {
+    const info = await apiFetch('/me', { method:'GET' });
+    // expected { ok:true, user_id, username }
+    if(!info || !info.ok){
+      window.location.href = '/login';
+      return null;
+    }
+    // store username if needed
+    window.__USER = info;
+    return info;
+  } catch(e){
+    // any error -> redirect to login
+    window.location.href = '/login';
+    return null;
+  }
 }
 
 /* ---------------------------
@@ -278,10 +296,7 @@ function initViz(){
   }, 3000);
 
   viz = { upsertNode, setNodeState, addTransferLink, removeTransferLink, redraw };
-
-  // seed a server node visually
-  upsertNode('SERVER', 'SERVER');
-  redraw();
+  upsertNode('SERVER', 'SERVER'); redraw();
 }
 
 // init & resize handling
@@ -311,34 +326,34 @@ es.onmessage = (e) => {
     pushLog(t, d);
     switch(t){
       case 'client_connected':
-        // prefer device name if provided
-        viz.upsertNode(ip, d.name || d.device || d.label);
-        viz.setNodeState(ip,'connected');
+        viz.upsertNode(ip || d.client_id, d.name || d.device || d.label);
+        viz.setNodeState(ip || d.client_id, 'connected');
         break;
       case 'client_disconnected':
-        viz.setNodeState(ip,'idle');
+        viz.setNodeState(ip || d.client_id, 'idle');
         break;
       case 'put_start':
-        viz.setNodeState(d.ip,'transferring',d);
-        viz.addTransferLink('SERVER', d.ip);
+        viz.setNodeState(d.ip || d.client_id,'transferring',d);
+        viz.addTransferLink('SERVER', d.ip || d.client_id);
         break;
       case 'put_done':
-        viz.setNodeState(d.ip,'connected',d);
-        viz.removeTransferLink('SERVER', d.ip);
+        viz.setNodeState(d.ip || d.client_id,'connected',d);
+        viz.removeTransferLink('SERVER', d.ip || d.client_id);
         break;
       case 'get_start':
-        viz.setNodeState(d.ip,'transferring',d);
-        viz.addTransferLink(d.ip, 'SERVER');
+        viz.setNodeState(d.ip || d.client_id,'transferring',d);
+        viz.addTransferLink(d.ip || d.client_id, 'SERVER');
         break;
       case 'get_done':
-        viz.setNodeState(d.ip,'connected',d);
-        viz.removeTransferLink(d.ip, 'SERVER');
+        viz.setNodeState(d.ip || d.client_id,'connected',d);
+        viz.removeTransferLink(d.ip || d.client_id, 'SERVER');
         break;
       default:
         // accept generic "hello" or "viewer_connected" too
         if(t === 'hello' || t === 'viewer_connected'){
-          viz.upsertNode(d.ip || d.client_id || d.id, d.name || d.device || d.label);
-          viz.setNodeState(d.ip || d.client_id || d.id, 'connected');
+          const id = d.ip || d.client_id || d.id;
+          viz.upsertNode(id, d.name || d.device || d.label);
+          viz.setNodeState(id, 'connected');
         }
         break;
     }
@@ -362,92 +377,110 @@ document.getElementById('clear').onclick = () => { location.reload(); };
 document.getElementById('pause').onclick = function(){ this._p = !this._p; this.textContent = this._p ? 'Resume events' : 'Pause events'; };
 
 /* ---------------------------
-   Login / device registration
+   Devices panel & registration
    --------------------------- */
-const loginModal = document.getElementById('loginModal');
-const usernameEl = document.getElementById('username');
-const passwordEl = document.getElementById('password');
-const deviceNameEl = document.getElementById('deviceName');
-const loginBtn = document.getElementById('loginBtn');
-const guestBtn = document.getElementById('guestBtn');
-
-function showLogin(){
-  // prefill device name with short UA or hostname
+async function fetchDevices(){
   try {
-    const ua = navigator.userAgent.split(')')[0];
-    deviceNameEl.value = deviceNameEl.value || ua.slice(0, 25);
-  } catch(e){}
-  loginModal.style.display = 'flex';
-}
-
-// hide modal and announce connected node
-function onLoggedIn(asUser, deviceName){
-  loginModal.style.display = 'none';
-  // send a client_connected event to the server (so viewer shows the node)
-  const payload = {
-    ts: new Date().toISOString(),
-    type: 'client_connected',
-    detail: {
-      ip: CLIENT_ID,
-      name: deviceName
-    }
-  };
-  sendLog(payload);
-  // also push to local viz immediately so you see instant feedback
-  viz.upsertNode(CLIENT_ID, deviceName);
-  viz.setNodeState(CLIENT_ID, 'connected');
-  // optionally inform server devices endpoint (if logged in)
-  if(asUser){
-    // attempt to register device under account
-    apiPost('/devices/register', { client_id: CLIENT_ID, name: deviceName }).catch(()=>{});
+    const j = await apiFetch('/devices/list', { method:'GET' });
+    if(!j || !j.ok) throw 'no devices';
+    renderDevices(j.devices || []);
+  } catch(e){
+    // could be not implemented on server yet
+    document.getElementById('devicesList').innerHTML = '<div style="color:var(--subtle)">Devices listing unavailable.</div>';
   }
 }
 
-// login flow
-loginBtn.addEventListener('click', async () => {
-  const username = usernameEl.value.trim();
-  const password = passwordEl.value;
-  const deviceName = (deviceNameEl.value || CLIENT_ID).trim();
-  if(!username || !password){
-    alert('Username and password required for login.');
+function renderDevices(devs){
+  const wrap = document.getElementById('devicesList');
+  wrap.innerHTML = '';
+  if(!devs.length){
+    wrap.innerHTML = '<div style="color:var(--subtle)">No devices registered for this account.</div>';
     return;
   }
+  devs.forEach(d => {
+    const row = document.createElement('div');
+    row.className = 'device-row';
+    const meta = document.createElement('div'); meta.className='device-meta';
+    const dot = document.createElement('span'); dot.className='dot'; dot.style.background = (d.client_id === CLIENT_ID) ? 'var(--foam)' : 'var(--muted)';
+    const nm = document.createElement('div'); nm.innerHTML = `<div class="device-name">${escapeHtml(d.name||d.client_id)}</div><div class="device-id">${escapeHtml(d.client_id)} · ${d.last_seen||'-'}</div>`;
+    meta.appendChild(dot); meta.appendChild(nm);
+    const actions = document.createElement('div');
+    const btn = document.createElement('button'); btn.textContent='Center';
+    btn.onclick = () => { viz.upsertNode(d.client_id, d.name); viz.setNodeState(d.client_id,'connected'); centerOnNode(d.client_id); };
+    actions.appendChild(btn);
+    row.appendChild(meta); row.appendChild(actions);
+    wrap.appendChild(row);
+  });
+}
+
+function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+document.getElementById('refreshDevices').addEventListener('click', fetchDevices);
+document.getElementById('registerDevice').addEventListener('click', async () => {
+  const deviceName = prompt('Name for this device?', navigator.platform || CLIENT_ID) || CLIENT_ID;
   try {
-    const res = await apiPost('/login', { username, password });
-    if(res.ok){
-      // success: register device and emit connected
-      onLoggedIn(true, deviceName);
-    } else {
-      alert('Login failed: ' + (res.error || 'unknown'));
-    }
-  } catch(err){
-    alert('Login error');
-    console.error(err);
+    const res = await apiFetch('/devices/register', { method:'POST', body: JSON.stringify({ client_id: CLIENT_ID, name: deviceName }) });
+    // refresh list and announce presence
+    fetchDevices();
+    sendLog({ ts:new Date().toISOString(), type:'client_connected', detail:{ ip: CLIENT_ID, name: deviceName } });
+    viz.upsertNode(CLIENT_ID, deviceName); viz.setNodeState(CLIENT_ID,'connected');
+    alert('Device registered.');
+  } catch(e){
+    alert('Could not register device.');
   }
 });
 
-// continue as guest
-guestBtn.addEventListener('click', () => {
-  const deviceName = (deviceNameEl.value || CLIENT_ID).trim();
-  onLoggedIn(false, deviceName);
-});
-
-// auto show login modal on first load (unless user already registered/seen)
-(function maybeShowLogin(){
-  // show only if not previously acknowledged on this client
-  const seen = localStorage.getItem('viewer_ack');
-  if(!seen){
-    localStorage.setItem('viewer_ack', '1');
-    showLogin();
-  } else {
-    // still announce presence as passive viewer (without login)
-    const deviceName = deviceNameEl.value || CLIENT_ID;
-    const payload = { ts:new Date().toISOString(), type:'viewer_connected', detail:{ ip: CLIENT_ID, name: deviceName } };
-    sendLog(payload);
-    viz.upsertNode(CLIENT_ID, deviceName);
-    viz.setNodeState(CLIENT_ID, 'connected');
+/* automatically register this device once after auth check */
+async function autoRegisterDeviceIfNeeded(username){
+  const name = navigator.platform || navigator.userAgent.split(')')[0];
+  try {
+    await apiFetch('/devices/register', { method:'POST', body: JSON.stringify({ client_id: CLIENT_ID, name: name }) });
+    // announce to events
+    sendLog({ ts:new Date().toISOString(), type:'client_connected', detail:{ ip: CLIENT_ID, name: name } });
+    viz.upsertNode(CLIENT_ID, name); viz.setNodeState(CLIENT_ID, 'connected');
+  } catch(e){
+    // silent
   }
+}
+
+/* center highlight helpers */
+function centerOnNode(id){
+  // brute-force re-init to center visually: create special node and re-run
+  viz.upsertNode(id);
+  // small animation: highlight node by setting transferring then back
+  viz.setNodeState(id,'transferring');
+  setTimeout(()=>viz.setNodeState(id,'connected'), 900);
+}
+
+/* ---------------------------
+   Boot sequence
+   --------------------------- */
+(async function boot(){
+  // 1) check auth (server will redirect if not logged in)
+  const me = await checkAuthOrRedirect();
+  if(!me) return;
+  // 2) init viz already done; auto register device under account and fetch device list
+  await autoRegisterDeviceIfNeeded(me.username || me.user_id);
+  await fetchDevices();
+  // keep device list fresh
+  setInterval(fetchDevices, 10000);
+
+  // also emit a viewer_connected ping every 20 seconds so node stays alive
+  setInterval(()=>{
+    sendLog({ ts:new Date().toISOString(), type:'viewer_connected', detail:{ ip: CLIENT_ID, name: navigator.platform || CLIENT_ID } });
+  }, 20000);
 })();
+
+/* Logout link behavior */
+document.getElementById('logoutLink').addEventListener('click', async (ev) => {
+  ev.preventDefault();
+  try {
+    await apiFetch('/logout', { method:'POST' });
+  } catch(e){}
+  // clear client-side id if you want (optional)
+  // localStorage.removeItem('client_id');
+  window.location.href = '/login';
+});
 
 </script>
 </body>

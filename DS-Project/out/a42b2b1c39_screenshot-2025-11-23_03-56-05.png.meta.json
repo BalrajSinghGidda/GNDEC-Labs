@@ -1,0 +1,12 @@
+{
+  "original": "/home/balraj/GNDEC-Labs/DS-Project/uploads/a42b2b1c39_screenshot-2025-11-23_03-56-05.png",
+  "compressed": "/home/balraj/GNDEC-Labs/DS-Project/out/a42b2b1c39_screenshot-2025-11-23_03-56-05.png.coo.json",
+  "reconstructed": "/home/balraj/GNDEC-Labs/DS-Project/out/a42b2b1c39_screenshot-2025-11-23_03-56-05.png.recon.png",
+  "sparsity": "/home/balraj/GNDEC-Labs/DS-Project/out/a42b2b1c39_screenshot-2025-11-23_03-56-05.png.sparsity.png",
+  "orig_size": 205337,
+  "comp_size": 34030748,
+  "recon_size": 72093,
+  "nonzeros": 2073600,
+  "total_pixels": 2073600,
+  "ratio": "0.01"
+}
